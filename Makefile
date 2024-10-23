@@ -29,7 +29,7 @@ all: $(NAME)
 
 $(NAME): 
 	@printf "$(CURSIVE)$(GRAY) 	- Compiling $(NAME)... $(RESET)\n"
-	@ $(CC) $(FLAGS) sources/*.cpp -o $(NAME)
+	@ $(CC) $(FLAGS) src/*.cpp -o $(NAME)
 	@printf "$(GREEN)    - Executable ready.\n$(RESET)"
 
 clean:
