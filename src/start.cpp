@@ -66,26 +66,37 @@ void handle_new_connection(int server_socket, struct pollfd *pollfds, int *clien
     }
 }
 
-void handle_client_message(struct pollfd* pollfd, int* client_count, struct pollfd* pollfds, t_data* data) {
+void handle_client_message(struct pollfd *pollfd, int *client_count, struct pollfd *pollfds, t_data *data)
+{
     char buffer[BUFFER_SIZE];
     memset(buffer, 0, BUFFER_SIZE);
 
     int bytes_read = recv(pollfd->fd, buffer, BUFFER_SIZE, 0);
-    if (bytes_read < 0) {
-        std::cerr << "Error: recv failed (error code " << errno << ")\n";
-        close(pollfd->fd);
-        data->clients.erase(pollfd->fd);
+    if (bytes_read < 0)
+    {
+        if (errno != EAGAIN && errno != EWOULDBLOCK)
+        {
+            std::cerr << "Error: recv failed (error code " << errno << ")\n";
+            close(pollfd->fd);
+            data->clients.erase(pollfd->fd);
 
-        pollfd->fd = pollfds[*client_count - 1].fd;
-        (*client_count)--;
-    } else if (bytes_read == 0) {
+            pollfd->fd = pollfds[*client_count - 1].fd;
+            pollfd->events = pollfds[*client_count - 1].events;
+            (*client_count)--;
+        }
+    }
+    else if (bytes_read == 0)
+    {
         std::cout << "Client disconnected" << std::endl;
         close(pollfd->fd);
         data->clients.erase(pollfd->fd);
 
         pollfd->fd = pollfds[*client_count - 1].fd;
+        pollfd->events = pollfds[*client_count - 1].events; // Copier aussi les événements
         (*client_count)--;
-    } else {
+    }
+    else
+    {
         std::string message(buffer, bytes_read);
         std::cout << "Message received: " << message << std::endl;
         process_command(pollfd->fd, message, data);

@@ -11,6 +11,7 @@
 #include <map>
 #include <cerrno>
 #include <vector>
+#include <set>
 
 #define MAX_CLIENTS 100
 #define BUFFER_SIZE 512
@@ -29,6 +30,8 @@ typedef struct s_data {
     std::string password;
     std::map<int, t_client> clients;
     std::map<std::string, std::vector<int> > channels;
+    std::map<std::string, std::set<int> > channel_operators;
+    std::map<std::string, std::string> channel_topics;
 } t_data;
 
 
@@ -38,3 +41,4 @@ void exitWithError(const std::string& message);
 void set_socket_non_blocking(int socket);
 void send_message(int client_socket, const std::string& message);
 void process_command(int client_socket, const std::string& command, t_data* data);
+void handle_topic_command(int client_socket, const std::string &arg, t_data *data);
