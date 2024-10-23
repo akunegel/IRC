@@ -21,7 +21,7 @@ typedef struct Client {
     std::string nickname;
     std::string username;
 
-    Client() : socket(-1), authenticated(false), nickname(""), username("") {}
+    Client() : socket(-1), authenticated(false), nickname("Anonymous"), username("Anonymous") {}
 } t_client;
 
 typedef struct s_data {
