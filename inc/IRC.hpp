@@ -21,8 +21,9 @@ typedef struct Client {
     bool authenticated;
     std::string nickname;
     std::string username;
+    std::string buffer;
 
-    Client() : socket(-1), authenticated(false), nickname("Anonymous"), username("Anonymous") {}
+    Client() : socket(-1), authenticated(false), username("Anonymous") {}
 } t_client;
 
 typedef struct s_data {
@@ -42,3 +43,5 @@ void set_socket_non_blocking(int socket);
 void send_message(int client_socket, const std::string& message);
 void process_command(int client_socket, const std::string& command, t_data* data);
 void handle_topic_command(int client_socket, const std::string &arg, t_data *data);
+void handle_kick_command(int client_socket, const std::string &args, t_data *data, t_client &client);
+void handle_invite_command(int client_socket, const std::string &args, t_data *data, t_client &client);

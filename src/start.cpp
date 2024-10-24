@@ -1,4 +1,7 @@
 #include "../inc/IRC.hpp"
+#include <sstream>
+
+int user_counter = 0;
 
 int create_server_socket(int port)
 {
@@ -54,6 +57,10 @@ void handle_new_connection(int server_socket, struct pollfd *pollfds, int *clien
         pollfds[*client_count].events = POLLIN;
 
         t_client new_client;
+        std::stringstream ss;
+        ss << "Anonymous" << user_counter;
+        user_counter++;
+        new_client.nickname = ss.str();
         new_client.socket = client_socket;
         data->clients[client_socket] = new_client;
         (*client_count)++;
@@ -71,7 +78,8 @@ void handle_client_message(struct pollfd *pollfd, int *client_count, struct poll
     char buffer[BUFFER_SIZE];
     memset(buffer, 0, BUFFER_SIZE);
 
-    int bytes_read = recv(pollfd->fd, buffer, BUFFER_SIZE, 0);
+    int bytes_read = recv(pollfd->fd, buffer, BUFFER_SIZE - 1, 0);
+
     if (bytes_read < 0)
     {
         if (errno != EAGAIN && errno != EWOULDBLOCK)
@@ -92,16 +100,24 @@ void handle_client_message(struct pollfd *pollfd, int *client_count, struct poll
         data->clients.erase(pollfd->fd);
 
         pollfd->fd = pollfds[*client_count - 1].fd;
-        pollfd->events = pollfds[*client_count - 1].events; // Copier aussi les événements
+        pollfd->events = pollfds[*client_count - 1].events;
         (*client_count)--;
     }
     else
     {
-        std::string message(buffer, bytes_read);
-        std::cout << "Message received: " << message << std::endl;
-        process_command(pollfd->fd, message, data);
+        t_client &client = data->clients[pollfd->fd];
+        client.buffer.append(buffer, bytes_read);
+        size_t newline_pos;
+        while ((newline_pos = client.buffer.find('\n')) != std::string::npos)
+        {
+            std::string command = client.buffer.substr(0, newline_pos);
+            client.buffer.erase(0, newline_pos + 1);
+            process_command(pollfd->fd, command, data);
+            std::cout << "message: " << command << std::endl;
+        }
     }
 }
+
 
 void run_server(t_data *data)
 {

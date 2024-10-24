@@ -1,5 +1,6 @@
 #include "../inc/IRC.hpp"
 
+
 void handle_pass_command(int client_socket, const std::string &arg, t_data *data, t_client &client)
 {
     if (arg == data->password)
@@ -61,9 +62,23 @@ void handle_join_command(int client_socket, const std::string &arg, t_data *data
     }
     else
     {
-        data->channels[arg].push_back(client_socket);
-        send_message(client_socket, "You joined the channel " + arg + "\n");
         std::vector<int> &channel_members = data->channels[arg];
+        bool already_in_channel = false;
+        for (size_t i = 0; i < channel_members.size(); ++i)
+        {
+            if (channel_members[i] == client_socket)
+            {
+                already_in_channel = true;
+                break;
+            }
+        }
+        if (already_in_channel)
+        {
+            send_message(client_socket, "You are already in the channel " + arg + "\n");
+            return;
+        }
+        channel_members.push_back(client_socket);
+        send_message(client_socket, "You joined the channel " + arg + "\n");
         for (size_t i = 0; i < channel_members.size(); ++i)
         {
             if (channel_members[i] != client_socket)
@@ -73,6 +88,7 @@ void handle_join_command(int client_socket, const std::string &arg, t_data *data
         }
     }
 }
+
 
 void handle_privmsg_command(int client_socket, const std::string &arg, t_data *data, t_client &client)
 {
@@ -101,7 +117,7 @@ void handle_privmsg_command(int client_socket, const std::string &arg, t_data *d
                     int member_socket = channel_members[i];
                     if (member_socket != client_socket)
                     {
-                        send_message(member_socket, client.nickname + ": " + message + "\n");
+                        send_message(member_socket, client.nickname + " [" + target + "]" + ": " + message + "\n");
                     }
                 }
             }
@@ -117,7 +133,7 @@ void handle_privmsg_command(int client_socket, const std::string &arg, t_data *d
             {
                 if (it->second.nickname == target)
                 {
-                    send_message(it->first, client.nickname + " (private): " + message + "\n");
+                    send_message(it->first, "(" + client.nickname + "): " + message + "\n");
                     user_found = true;
                 }
             }
@@ -215,6 +231,14 @@ void process_command(int client_socket, const std::string &command, t_data *data
         else if (prefix == "TOPIC")
         {
             handle_topic_command(client.socket, arg, data);
+        }
+        else if (prefix == "KICK")
+        {
+            handle_kick_command(client.socket, arg, data, client);
+        }
+        else if (prefix == "INVITE")
+        {
+            handle_invite_command(client_socket, arg, data, client);
         }
         else
         {
