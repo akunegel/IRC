@@ -2,7 +2,7 @@
 
 int main(int argc, char **argv) {
 	if (argc != 3) {
-		std::cout << "Error: Format is: ./ircserv <port> <password>" << std::endl;
+		std::cout << "Error: Format is: ./ircserv <port> <password>." << std::endl;
 		return 0;
 	}
 	

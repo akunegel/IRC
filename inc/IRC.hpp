@@ -37,6 +37,7 @@ typedef struct s_data {
     std::map<std::string, bool> invite_only;
     std::map<std::string, std::set<int> > invited_users;
     std::map<std::string, std::string> channel_passwords;
+    std::map<std::string, bool> topic_restricted;
 } t_data;
 
 

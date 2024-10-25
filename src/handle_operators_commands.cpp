@@ -1,38 +1,36 @@
 #include "../inc/IRC.hpp"
 
-void handle_topic_command(int client_socket, const std::string &arg, t_data *data)
-{
+void handle_topic_command(int client_socket, const std::string &arg, t_data *data) {
     size_t space_pos = arg.find(' ');
-    if (space_pos == std::string::npos)
-    {
-        send_message(client_socket, "Invalid TOPIC format, usage: TOPIC <channel> <topic>\n");
+    if (space_pos == std::string::npos) {
+        send_message(client_socket, "Invalid TOPIC format, usage: TOPIC <channel> <topic>.\n");
         return;
     }
+    
     std::string channel_name = arg.substr(0, space_pos);
     std::string new_topic = arg.substr(space_pos + 1);
-    if (data->channels.find(channel_name) == data->channels.end())
-    {
-        send_message(client_socket, "Channel " + channel_name + " does not exist\n");
+    if (data->channels.find(channel_name) == data->channels.end()) {
+        send_message(client_socket, "Channel " + channel_name + " does not exist.\n");
         return;
     }
-    if (data->channel_operators[channel_name].find(client_socket) == data->channel_operators[channel_name].end())
-    {
-        send_message(client_socket, "You are not an operator of the channel " + channel_name + "\n");
+    bool topic_restricted = data->topic_restricted[channel_name];
+    if (topic_restricted && data->channel_operators[channel_name].find(client_socket) == data->channel_operators[channel_name].end()) {
+        send_message(client_socket, "Only operators can change the topic for channel " + channel_name + ".\n");
         return;
     }
     data->channel_topics[channel_name] = new_topic;
-    send_message(client_socket, "Topic for channel " + channel_name + " has been set to: " + new_topic + "\n");
+    send_message(client_socket, "Topic for channel " + channel_name + " has been set to: " + new_topic + ".\n");
     std::vector<int> &channel_members = data->channels[channel_name];
-    for (size_t i = 0; i < channel_members.size(); ++i)
-    {
-        send_message(channel_members[i], "Topic for channel " + channel_name + " has been changed to: " + new_topic + "\n");
+    for (size_t i = 0; i < channel_members.size(); ++i) {
+        send_message(channel_members[i], "Topic for channel " + channel_name + " has been changed to: " + new_topic + ".\n");
     }
 }
+
 
 void handle_kick_command(int client_socket, const std::string &args, t_data *data, t_client &client) {
     size_t space_pos = args.find(' ');
     if (space_pos == std::string::npos) {
-        send_message(client_socket, "Usage: KICK <channel> <user>\n");
+        send_message(client_socket, "Usage: KICK <channel> <user>.\n");
         return;
     }
 
@@ -67,18 +65,18 @@ void handle_kick_command(int client_socket, const std::string &args, t_data *dat
     }
     
     if (target_socket == -1) {
-        send_message(client_socket, "User " + target_nickname + " is not in the channel " + channel_name + "\n");
+        send_message(client_socket, "User " + target_nickname + " is not in the channel " + channel_name + ".\n");
         return;
     }
 
     if (data->channel_operators.find(channel_name) == data->channel_operators.end() ||
         data->channel_operators[channel_name].find(client_socket) == data->channel_operators[channel_name].end()) {
         send_message(client_socket, "You are not an operator of channel " + channel_name + "\n");
-        send_message(target_socket, "User " + client.nickname + " tried to kick you from " + channel_name + "\n");
+        send_message(target_socket, "User " + client.nickname + " tried to kick you from " + channel_name + ".\n");
         return;
     }
 
-    std::string kick_message = client.nickname + " has kicked " + target_nickname + " from " + channel_name + "\n";
+    std::string kick_message = client.nickname + " has kicked " + target_nickname + " from " + channel_name + ".\n";
     for (std::vector<int>::iterator it = channel_members.begin(); it != channel_members.end(); ++it) {
         send_message(*it, kick_message);
     }
@@ -88,7 +86,7 @@ void handle_kick_command(int client_socket, const std::string &args, t_data *dat
             break;
         }
     }
-    send_message(target_socket, "You have been kicked from " + channel_name + "\n");
+    send_message(target_socket, "You have been kicked from " + channel_name + ".\n");
     if (channel_members.empty()) {
         data->channels.erase(channel_name);
     }
@@ -99,7 +97,7 @@ void handle_invite_command(int client_socket, const std::string &args, t_data *d
     size_t space_pos = args.find(' ');
     if (space_pos == std::string::npos)
     {
-        send_message(client_socket, "Usage: INVITE <nickname> <channel>\n");
+        send_message(client_socket, "Usage: INVITE <nickname> <channel>.\n");
         return;
     }
     std::string target_nickname = args.substr(0, space_pos);

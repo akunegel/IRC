@@ -1,11 +1,27 @@
 #include "../inc/IRC.hpp"
 
+void handle_mode_t(int client_socket, const std::string &channel_name, t_data *data) {
+    if (data->channels.find(channel_name) == data->channels.end()) {
+        send_message(client_socket, "Channel " + channel_name + " does not exist.\n");
+        return;
+    }
+    if (data->channel_operators[channel_name].find(client_socket) == data->channel_operators[channel_name].end()) {
+        send_message(client_socket, "You must be an operator in the channel " + channel_name + " to set topic restriction.\n");
+        return;
+    }
+    bool is_restricted = data->topic_restricted[channel_name];
+    data->topic_restricted[channel_name] = !is_restricted;
+    std::string restriction_status = is_restricted ? "disabled" : "enabled";
+    send_message(client_socket, "Topic restriction for channel " + channel_name + " " + restriction_status + ".\n");
+}
+
+
 void handle_mode_o(int client_socket, const std::string &args, t_data *data)
 {
     size_t space_pos = args.find(' ');
     if (space_pos == std::string::npos)
     {
-        send_message(client_socket, "Usage: MODE -o <channel> <nickname>\n");
+        send_message(client_socket, "Usage: MODE -o <channel> <nickname>.\n");
         return;
     }
     std::string channel_name = args.substr(0, space_pos);
@@ -108,7 +124,7 @@ void handle_mode_command(int client_socket, std::string &arg, t_data *data, t_cl
 {
     if (arg.empty())
     {
-        send_message(client_socket, "Usage: MODE <flag>\n");
+        send_message(client_socket, "Usage: MODE <flag>.\n");
         return;
     }
 
@@ -128,7 +144,7 @@ void handle_mode_command(int client_socket, std::string &arg, t_data *data, t_cl
     }
     else if (flag == "-t")
     {
-        //handle_mode_t(client_socket, data, client);
+        handle_mode_t(client_socket, channel_name, data);
     }
     else if (flag == "-k")
     {
@@ -144,6 +160,6 @@ void handle_mode_command(int client_socket, std::string &arg, t_data *data, t_cl
     }
     else
     {
-        send_message(client_socket, "Unknown mode flag: " + flag + "\nAvailable flags are: -i, -t, -k, -o, -l\n");
+        send_message(client_socket, "Unknown mode flag: " + flag + "\nAvailable flags are: -i, -t, -k, -o, -l.\n");
     }
 }

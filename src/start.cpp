@@ -8,13 +8,13 @@ int create_server_socket(int port)
     int server_socket = socket(AF_INET, SOCK_STREAM, 0);
     if (server_socket < 0)
     {
-        exitWithError("Error: Cannot create socket");
+        exitWithError("Error: Cannot create socket.");
     }
 
     int opt = 1;
     if (setsockopt(server_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
     {
-        exitWithError("Error: setsockopt failed");
+        exitWithError("Error: setsockopt failed.");
     }
 
     struct sockaddr_in server_addr;

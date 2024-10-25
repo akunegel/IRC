@@ -6,11 +6,11 @@ void handle_pass_command(int client_socket, const std::string &arg, t_data *data
     if (arg == data->password)
     {
         client.authenticated = true;
-        send_message(client_socket, "Authentication successful!\n");
+        send_message(client_socket, "Authentication successful !\n");
     }
     else
     {
-        send_message(client_socket, "Invalid password!\n");
+        send_message(client_socket, "Invalid password !\n");
     }
 }
 
@@ -30,12 +30,12 @@ void handle_nick_command(int client_socket, const std::string &arg, t_data *data
     {
         if (arg.find(' ') != std::string::npos)
         {
-            send_message(client_socket, "Users and channels can't contain a space\n");
+            send_message(client_socket, "Users and channels can't contain a space.\n");
         }
         else
         {
             client.nickname = arg;
-            send_message(client_socket, "Nickname set to " + arg + "\n");
+            send_message(client_socket, "Nickname set to " + arg + ".\n");
         }
     }
 }
@@ -57,15 +57,15 @@ void handle_join_command(int client_socket, const std::string &arg, t_data *data
 
     if (channel_name.find(' ') != std::string::npos)
     {
-        send_message(client_socket, "Channel names cannot contain spaces\n");
+        send_message(client_socket, "Channel names cannot contain spaces.\n");
         return;
     }
     if (data->channels.find(channel_name) == data->channels.end())
     {
         data->channels[channel_name].push_back(client_socket);
         data->channel_operators[channel_name].insert(client_socket);
-        send_message(client_socket, "You created and joined the channel " + channel_name + "\n");
-        send_message(client_socket, "You are now an operator of the channel " + channel_name + "\n");
+        send_message(client_socket, "You created and joined the channel " + channel_name + ".\n");
+        send_message(client_socket, "You are now an operator of the channel " + channel_name + ".\n");
     }
     else
     {
@@ -81,7 +81,7 @@ void handle_join_command(int client_socket, const std::string &arg, t_data *data
         }
         if (already_in_channel)
         {
-            send_message(client_socket, "You are already in the channel " + channel_name + "\n");
+            send_message(client_socket, "You are already in the channel " + channel_name + ".\n");
             return;
         }
 
@@ -93,22 +93,22 @@ void handle_join_command(int client_socket, const std::string &arg, t_data *data
 
         if (data->invite_only[channel_name] && data->invited_users[channel_name].find(client_socket) == data->invited_users[channel_name].end())
         {
-            send_message(client_socket, "You need an invitation to join the channel " + channel_name + "\n");
+            send_message(client_socket, "You need an invitation to join the channel " + channel_name + ".\n");
             return;
         }
         if (!data->channel_passwords[channel_name].empty() && data->channel_passwords[channel_name] != provided_password)
         {
-            send_message(client_socket, "Incorrect password for channel " + channel_name + "\n");
+            send_message(client_socket, "Incorrect password for channel " + channel_name + ".\n");
             return;
         }
         channel_members.push_back(client_socket);
-        send_message(client_socket, "You joined the channel " + channel_name + "\n");
+        send_message(client_socket, "You joined the channel " + channel_name + ".\n");
         
         for (size_t i = 0; i < channel_members.size(); ++i)
         {
             if (channel_members[i] != client_socket)
             {
-                send_message(channel_members[i], client.nickname + " has joined the channel " + channel_name + "\n");
+                send_message(channel_members[i], client.nickname + " has joined the channel " + channel_name + ".\n");
             }
         }
     }
@@ -148,7 +148,7 @@ void handle_privmsg_command(int client_socket, const std::string &arg, t_data *d
             }
             else
             {
-                send_message(client_socket, "You are not in the channel " + target + "\n");
+                send_message(client_socket, "You are not in the channel " + target + ".\n");
             }
         }
         else
@@ -187,10 +187,10 @@ void handle_part_command(int client_socket, const std::string &arg, t_data *data
             {
                 found = true;
                 channel_members.erase(channel_members.begin() + i);
-                send_message(client_socket, "You left the channel " + arg + "\n");
+                send_message(client_socket, "You left the channel " + arg + ".\n");
                 for (size_t j = 0; j < channel_members.size(); ++j)
                 {
-                    send_message(channel_members[j], client.nickname + " has left the channel " + arg + "\n");
+                    send_message(channel_members[j], client.nickname + " has left the channel " + arg + ".\n");
                 }
                 if (channel_members.empty())
                 {
@@ -201,12 +201,12 @@ void handle_part_command(int client_socket, const std::string &arg, t_data *data
         }
         if (!found)
         {
-            send_message(client_socket, "You are not in the channel " + arg + "\n");
+            send_message(client_socket, "You are not in the channel " + arg + ".\n");
         }
     }
     else
     {
-        send_message(client_socket, "Channel " + arg + " does not exist\n");
+        send_message(client_socket, "Channel " + arg + " does not exist.\n");
     }
 }
 

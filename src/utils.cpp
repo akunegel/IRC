@@ -2,7 +2,7 @@
 
 void exitWithError(const std::string& message) {
     std::cerr << message << std::endl;
-    exit(EXIT_FAILURE);
+    exit(0);
 }
 
 void set_socket_non_blocking(int socket) {
