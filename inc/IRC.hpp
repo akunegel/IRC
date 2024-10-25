@@ -33,6 +33,10 @@ typedef struct s_data {
     std::map<std::string, std::vector<int> > channels;
     std::map<std::string, std::set<int> > channel_operators;
     std::map<std::string, std::string> channel_topics;
+    std::map<std::string, int> max_users;
+    std::map<std::string, bool> invite_only;
+    std::map<std::string, std::set<int> > invited_users;
+    std::map<std::string, std::string> channel_passwords;
 } t_data;
 
 
@@ -45,3 +49,4 @@ void process_command(int client_socket, const std::string& command, t_data* data
 void handle_topic_command(int client_socket, const std::string &arg, t_data *data);
 void handle_kick_command(int client_socket, const std::string &args, t_data *data, t_client &client);
 void handle_invite_command(int client_socket, const std::string &args, t_data *data, t_client &client);
+void handle_mode_command(int client_socket, std::string &arg, t_data *data, t_client &client);

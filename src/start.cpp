@@ -65,6 +65,7 @@ void handle_new_connection(int server_socket, struct pollfd *pollfds, int *clien
         data->clients[client_socket] = new_client;
         (*client_count)++;
         std::cout << "New client connected!" << std::endl;
+        send_message(client_socket, "You must authenticate using the PASS command!\n");
     }
     else
     {

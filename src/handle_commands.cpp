@@ -185,6 +185,19 @@ void handle_part_command(int client_socket, const std::string &arg, t_data *data
     }
 }
 
+void handle_names_command(int client_socket, t_data *data) {
+    send_message(client_socket, "USERS LIST:\n\n");
+    for (std::map<int, t_client>::iterator it = data->clients.begin(); it != data->clients.end(); ++it)
+    {
+        send_message(client_socket, "-" + it->second.nickname + "\n");
+    }
+    send_message(client_socket, "\n\nCHANNELS LIST:\n\n");
+    for (std::map<std::string, std::vector<int> >::iterator it = data->channels.begin(); it != data->channels.end(); ++it)
+    {
+        send_message(client_socket, "-" + it->first + "\n");
+    }
+}
+
 void process_command(int client_socket, const std::string &command, t_data *data)
 {
     t_client &client = data->clients[client_socket];
@@ -239,6 +252,14 @@ void process_command(int client_socket, const std::string &command, t_data *data
         else if (prefix == "INVITE")
         {
             handle_invite_command(client_socket, arg, data, client);
+        }
+        else if (prefix == "MODE")
+        {
+            handle_mode_command(client_socket, arg, data, client);
+        }
+        else if (prefix == "NAMES")
+        {
+            handle_names_command(client_socket, data);
         }
         else
         {
