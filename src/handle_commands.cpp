@@ -48,21 +48,28 @@ void handle_user_command(int client_socket, const std::string &arg, t_client &cl
 
 void handle_join_command(int client_socket, const std::string &arg, t_data *data, t_client &client)
 {
-    if (arg.find(' ') != std::string::npos)
+    size_t space_pos = arg.find(' ');
+    std::string channel_name = arg.substr(0, space_pos);
+    std::string provided_password;
+
+    if (space_pos != std::string::npos)
+        provided_password = arg.substr(space_pos + 1);
+
+    if (channel_name.find(' ') != std::string::npos)
     {
-        send_message(client_socket, "Users and channels can't contain a space\n");
+        send_message(client_socket, "Channel names cannot contain spaces\n");
         return;
     }
-    if (data->channels.find(arg) == data->channels.end())
+    if (data->channels.find(channel_name) == data->channels.end())
     {
-        data->channels[arg].push_back(client_socket);
-        data->channel_operators[arg].insert(client_socket);
-        send_message(client_socket, "You created and joined the channel " + arg + "\n");
-        send_message(client_socket, "You are now an operator of the channel " + arg + "\n");
+        data->channels[channel_name].push_back(client_socket);
+        data->channel_operators[channel_name].insert(client_socket);
+        send_message(client_socket, "You created and joined the channel " + channel_name + "\n");
+        send_message(client_socket, "You are now an operator of the channel " + channel_name + "\n");
     }
     else
     {
-        std::vector<int> &channel_members = data->channels[arg];
+        std::vector<int> &channel_members = data->channels[channel_name];
         bool already_in_channel = false;
         for (size_t i = 0; i < channel_members.size(); ++i)
         {
@@ -74,16 +81,34 @@ void handle_join_command(int client_socket, const std::string &arg, t_data *data
         }
         if (already_in_channel)
         {
-            send_message(client_socket, "You are already in the channel " + arg + "\n");
+            send_message(client_socket, "You are already in the channel " + channel_name + "\n");
+            return;
+        }
+
+        if (data->max_users[channel_name] != 0 && channel_members.size() >= (long unsigned int)data->max_users[channel_name])
+        {
+            send_message(client_socket, "The channel " + channel_name + " has reached its member limit.\n");
+            return;
+        }
+
+        if (data->invite_only[channel_name] && data->invited_users[channel_name].find(client_socket) == data->invited_users[channel_name].end())
+        {
+            send_message(client_socket, "You need an invitation to join the channel " + channel_name + "\n");
+            return;
+        }
+        if (!data->channel_passwords[channel_name].empty() && data->channel_passwords[channel_name] != provided_password)
+        {
+            send_message(client_socket, "Incorrect password for channel " + channel_name + "\n");
             return;
         }
         channel_members.push_back(client_socket);
-        send_message(client_socket, "You joined the channel " + arg + "\n");
+        send_message(client_socket, "You joined the channel " + channel_name + "\n");
+        
         for (size_t i = 0; i < channel_members.size(); ++i)
         {
             if (channel_members[i] != client_socket)
             {
-                send_message(channel_members[i], client.nickname + " has joined the channel " + arg + "\n");
+                send_message(channel_members[i], client.nickname + " has joined the channel " + channel_name + "\n");
             }
         }
     }

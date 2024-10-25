@@ -146,7 +146,6 @@ void handle_invite_command(int client_socket, const std::string &args, t_data *d
             return;
         }
     }
-    std::string invite_message = "You have been invited by " + client.nickname + " to join the channel " + channel_name + ". Please type JOIN " + channel_name + " to join.\n";
-    send_message(target_socket, invite_message);
+    send_message(target_socket, "You have been invited by " + client.nickname + " to join the channel " + channel_name + ". Please type JOIN " + channel_name + " to join.\n");
     send_message(client_socket, "Invitation sent to " + target_nickname + " to join " + channel_name + ".\n");
 }
