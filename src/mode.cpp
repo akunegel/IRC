@@ -1,5 +1,20 @@
 #include "../inc/IRC.hpp"
 
+void handle_mode_i(int client_socket, std::string &channel_name, t_data *data) {
+    if (data->channels.find(channel_name) == data->channels.end()) {
+        send_message(client_socket, "Channel " + channel_name + " does not exist.\n");
+        return;
+    }
+    if (data->channel_operators[channel_name].find(client_socket) == data->channel_operators[channel_name].end()) {
+        send_message(client_socket, "You must be an operator in the channel " + channel_name + " to set invite restriction.\n");
+        return;
+    }
+    bool is_invite_only = data->invite_only[channel_name];
+    data->invite_only[channel_name] = !is_invite_only;
+    std::string invite_restriction = is_invite_only ? "disabled" : "enabled";
+    send_message(client_socket, "Invite restriction for channel " + channel_name + " " + invite_restriction + ".\n");
+}
+
 void handle_mode_t(int client_socket, const std::string &channel_name, t_data *data) {
     if (data->channels.find(channel_name) == data->channels.end()) {
         send_message(client_socket, "Channel " + channel_name + " does not exist.\n");
@@ -138,9 +153,9 @@ void handle_mode_command(int client_socket, std::string &arg, t_data *data, t_cl
     if (space_pos != std::string::npos)
         additional_arg = arg.substr(space_pos + 1);
     
-    if (flag == "-u")
+    if (flag == "-i")
     {
-        //handle_mode_i(client_socket, data, client);
+        handle_mode_i(client_socket, channel_name, data);
     }
     else if (flag == "-t")
     {

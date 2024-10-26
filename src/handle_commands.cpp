@@ -214,7 +214,7 @@ void handle_names_command(int client_socket, t_data *data) {
     send_message(client_socket, "USERS LIST:\n\n");
     for (std::map<int, t_client>::iterator it = data->clients.begin(); it != data->clients.end(); ++it)
     {
-        send_message(client_socket, "-" + it->second.nickname + "\n");
+        send_message(client_socket, "-" + it->second.nickname + " (" + it->second.username + ")" + "\n");
     }
     send_message(client_socket, "\n\nCHANNELS LIST:\n\n");
     for (std::map<std::string, std::vector<int> >::iterator it = data->channels.begin(); it != data->channels.end(); ++it)

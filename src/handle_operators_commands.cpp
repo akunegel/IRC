@@ -33,11 +33,8 @@ void handle_kick_command(int client_socket, const std::string &args, t_data *dat
         send_message(client_socket, "Usage: KICK <channel> <user>.\n");
         return;
     }
-
-
     std::string channel_name = args.substr(0, space_pos);
     std::string target_nickname = args.substr(space_pos + 1);
-
     if (data->channels.find(channel_name) == data->channels.end()) {
         send_message(client_socket, "Channel " + channel_name + " does not exist.\n");
         return;
@@ -50,7 +47,6 @@ void handle_kick_command(int client_socket, const std::string &args, t_data *dat
             break;
         }
     }
-
     if (!expeller_in_channel) {
         send_message(client_socket, "You are not in the channel " + channel_name + "\n");
         return;
@@ -63,22 +59,18 @@ void handle_kick_command(int client_socket, const std::string &args, t_data *dat
             break;
         }
     }
-    
     if (target_socket == -1) {
         send_message(client_socket, "User " + target_nickname + " is not in the channel " + channel_name + ".\n");
         return;
     }
-
     if (data->channel_operators.find(channel_name) == data->channel_operators.end() ||
         data->channel_operators[channel_name].find(client_socket) == data->channel_operators[channel_name].end()) {
         send_message(client_socket, "You are not an operator of channel " + channel_name + "\n");
         send_message(target_socket, "User " + client.nickname + " tried to kick you from " + channel_name + ".\n");
         return;
     }
-
-    std::string kick_message = client.nickname + " has kicked " + target_nickname + " from " + channel_name + ".\n";
     for (std::vector<int>::iterator it = channel_members.begin(); it != channel_members.end(); ++it) {
-        send_message(*it, kick_message);
+        send_message(*it, client.nickname + " has kicked " + target_nickname + " from " + channel_name + ".\n");
     }
     for (std::vector<int>::iterator it = channel_members.begin(); it != channel_members.end(); ++it) {
         if (*it == target_socket) {
@@ -90,6 +82,7 @@ void handle_kick_command(int client_socket, const std::string &args, t_data *dat
     if (channel_members.empty()) {
         data->channels.erase(channel_name);
     }
+    data->invited_users[channel_name].erase(target_socket);
 }
 
 void handle_invite_command(int client_socket, const std::string &args, t_data *data, t_client &client)
@@ -144,6 +137,7 @@ void handle_invite_command(int client_socket, const std::string &args, t_data *d
             return;
         }
     }
+    data->invited_users[channel_name].insert(target_socket);
     send_message(target_socket, "You have been invited by " + client.nickname + " to join the channel " + channel_name + ". Please type JOIN " + channel_name + " to join.\n");
     send_message(client_socket, "Invitation sent to " + target_nickname + " to join " + channel_name + ".\n");
 }
