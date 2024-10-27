@@ -81,25 +81,11 @@ void handle_client_message(struct pollfd *pollfd, int *client_count, struct poll
 
     int bytes_read = recv(pollfd->fd, buffer, BUFFER_SIZE - 1, 0);
 
-    if (bytes_read < 0)
+    if (bytes_read <= 0)
     {
-        if (errno != EAGAIN && errno != EWOULDBLOCK)
-        {
-            std::cerr << "Error: recv failed (error code " << errno << ")\n";
-            close(pollfd->fd);
-            data->clients.erase(pollfd->fd);
-
-            pollfd->fd = pollfds[*client_count - 1].fd;
-            pollfd->events = pollfds[*client_count - 1].events;
-            (*client_count)--;
-        }
-    }
-    else if (bytes_read == 0)
-    {
-        std::cout << "Client disconnected" << std::endl;
+        std::cerr << "Client disconnected or recv error.\n";
         close(pollfd->fd);
         data->clients.erase(pollfd->fd);
-
         pollfd->fd = pollfds[*client_count - 1].fd;
         pollfd->events = pollfds[*client_count - 1].events;
         (*client_count)--;
@@ -108,6 +94,7 @@ void handle_client_message(struct pollfd *pollfd, int *client_count, struct poll
     {
         t_client &client = data->clients[pollfd->fd];
         client.buffer.append(buffer, bytes_read);
+        
         size_t newline_pos;
         while ((newline_pos = client.buffer.find('\n')) != std::string::npos)
         {
@@ -118,6 +105,8 @@ void handle_client_message(struct pollfd *pollfd, int *client_count, struct poll
         }
     }
 }
+
+
 
 
 void run_server(t_data *data)
