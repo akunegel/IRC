@@ -1,11 +1,14 @@
 #include "../inc/IRC.hpp"
 
-void handle_mode_i(int client_socket, std::string &channel_name, t_data *data) {
-    if (data->channels.find(channel_name) == data->channels.end()) {
+void handle_mode_i(int client_socket, std::string &channel_name, t_data *data)
+{
+    if (data->channels.find(channel_name) == data->channels.end())
+    {
         send_message(client_socket, "Channel " + channel_name + " does not exist.\n");
         return;
     }
-    if (data->channel_operators[channel_name].find(client_socket) == data->channel_operators[channel_name].end()) {
+    if (data->channel_operators[channel_name].find(client_socket) == data->channel_operators[channel_name].end())
+    {
         send_message(client_socket, "You must be an operator in the channel " + channel_name + " to set invite restriction.\n");
         return;
     }
@@ -15,12 +18,15 @@ void handle_mode_i(int client_socket, std::string &channel_name, t_data *data) {
     send_message(client_socket, "Invite restriction for channel " + channel_name + " " + invite_restriction + ".\n");
 }
 
-void handle_mode_t(int client_socket, const std::string &channel_name, t_data *data) {
-    if (data->channels.find(channel_name) == data->channels.end()) {
+void handle_mode_t(int client_socket, const std::string &channel_name, t_data *data)
+{
+    if (data->channels.find(channel_name) == data->channels.end())
+    {
         send_message(client_socket, "Channel " + channel_name + " does not exist.\n");
         return;
     }
-    if (data->channel_operators[channel_name].find(client_socket) == data->channel_operators[channel_name].end()) {
+    if (data->channel_operators[channel_name].find(client_socket) == data->channel_operators[channel_name].end())
+    {
         send_message(client_socket, "You must be an operator in the channel " + channel_name + " to set topic restriction.\n");
         return;
     }
@@ -29,7 +35,6 @@ void handle_mode_t(int client_socket, const std::string &channel_name, t_data *d
     std::string restriction_status = is_restricted ? "disabled" : "enabled";
     send_message(client_socket, "Topic restriction for channel " + channel_name + " " + restriction_status + ".\n");
 }
-
 
 void handle_mode_o(int client_socket, const std::string &args, t_data *data)
 {
@@ -81,78 +86,96 @@ void handle_mode_o(int client_socket, const std::string &args, t_data *data)
     }
 }
 
-void handle_mode_k(int client_socket, const std::string &channel_name, const std::string &password, t_data *data) {
-    if (data->channels.find(channel_name) == data->channels.end()) {
+void handle_mode_k(int client_socket, const std::string &channel_name, const std::string &password, t_data *data)
+{
+    if (data->channels.find(channel_name) == data->channels.end())
+    {
         send_message(client_socket, "Channel " + channel_name + " does not exist.\n");
         return;
     }
-    if (data->channel_operators[channel_name].find(client_socket) == data->channel_operators[channel_name].end()) {
+    if (data->channel_operators[channel_name].find(client_socket) == data->channel_operators[channel_name].end())
+    {
         send_message(client_socket, "You must be an operator of the channel to set a password.\n");
         return;
     }
-    if (password.empty()) {
+    if (password.empty())
+    {
         data->channel_passwords.erase(channel_name);
         send_message(client_socket, "Password for channel " + channel_name + " has been removed.\n");
-    } else {
+    }
+    else
+    {
         data->channel_passwords[channel_name] = password;
         send_message(client_socket, "Password for channel " + channel_name + " has been set.\n");
     }
 }
 
-void handle_mode_l(int client_socket, const std::string &arg, t_data *data) {
+void handle_mode_l(int client_socket, const std::string &arg, t_data *data)
+{
     size_t space_pos = arg.find(' ');
-    if (space_pos == std::string::npos) {
-        send_message(client_socket, "Usage: MODE <channel> -l [limit]\n");
+    if (space_pos == std::string::npos)
+    {
+        send_message(client_socket, "Usage: MODE -l <channel> [limit]\n");
         return;
     }
-    
+
     std::string channel_name = arg.substr(0, space_pos);
     std::string limit_str = arg.substr(space_pos + 1);
 
-    if (data->channels.find(channel_name) == data->channels.end()) {
+    size_t space_pos1 = limit_str.find(' ');
+    if (space_pos1 != std::string::npos)
+    {
+        send_message(client_socket, "Usage: MODE -l <channel> [limit]\n");
+        return;
+    }
+
+    if (data->channels.find(channel_name) == data->channels.end())
+    {
         send_message(client_socket, "Channel " + channel_name + " does not exist.\n");
         return;
     }
 
-    if (data->channel_operators[channel_name].find(client_socket) == data->channel_operators[channel_name].end()) {
+    if (data->channel_operators[channel_name].find(client_socket) == data->channel_operators[channel_name].end())
+    {
         send_message(client_socket, "You must be an operator in the channel " + channel_name + " to set the user limit.\n");
         return;
     }
 
-    if (limit_str.empty()) {
+    int limit = atoi(limit_str.c_str());
+    if (limit < 0)
+    {
+        send_message(client_socket, "Invalid user limit.\n");
+        return;
+    }
+    else if (limit == 0)
+    {
         data->max_users.erase(channel_name);
         send_message(client_socket, "User limit removed from channel " + channel_name + ".\n");
-    } else {
-        int limit = atoi(limit_str.c_str());
-        if (limit <= 0) {
-            send_message(client_socket, "Invalid user limit.\n");
-            return;
-        }
+    }
+    else 
+    {
         data->max_users[channel_name] = limit;
         send_message(client_socket, "User limit for channel " + channel_name + " set to " + limit_str + ".\n");
     }
 }
 
-
-
-void handle_mode_command(int client_socket, std::string &arg, t_data *data, t_client &client)
+void handle_mode_command(int client_socket, std::string &arg, t_data *data)
 {
-    if (arg.empty())
+    if (arg.empty() || arg.size() < 3)
     {
-        send_message(client_socket, "Usage: MODE <flag>.\n");
+        send_message(client_socket, "Usage: MODE <flag> <option>.\n");
         return;
     }
-
     std::string flag = arg.substr(0, 2);
     arg = arg.substr(3);
 
     size_t space_pos = arg.find(' ');
     std::string channel_name = arg.substr(0, space_pos);
     std::string additional_arg;
-    (void)client;
+
     if (space_pos != std::string::npos)
         additional_arg = arg.substr(space_pos + 1);
-    
+
     if (flag == "-i")
     {
         handle_mode_i(client_socket, channel_name, data);
@@ -164,7 +187,7 @@ void handle_mode_command(int client_socket, std::string &arg, t_data *data, t_cl
     else if (flag == "-k")
     {
         handle_mode_k(client_socket, channel_name, additional_arg, data);
-	}
+    }
     else if (flag == "-o")
     {
         handle_mode_o(client_socket, arg, data);

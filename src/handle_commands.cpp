@@ -280,7 +280,7 @@ void process_command(int client_socket, const std::string &command, t_data *data
         }
         else if (prefix == "MODE")
         {
-            handle_mode_command(client_socket, arg, data, client);
+            handle_mode_command(client_socket, arg, data);
         }
         else if (prefix == "NAMES")
         {

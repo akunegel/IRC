@@ -13,6 +13,11 @@
 #include <vector>
 #include <set>
 
+//
+//FAIRE POUR PAS AVOIR UN NICKNAME ou CHANNEL_NAME VIERGE OU DUPLIQUER DANS L"AUTRE CATEGORIE POUR EVITER PRIVMSG PROBLEMES
+//CTRL+Z APRES CTRL+D FAIT CRASH
+//
+
 #define MAX_CLIENTS 100
 #define BUFFER_SIZE 512
 
@@ -50,4 +55,4 @@ void process_command(int client_socket, const std::string& command, t_data* data
 void handle_topic_command(int client_socket, const std::string &arg, t_data *data);
 void handle_kick_command(int client_socket, const std::string &args, t_data *data, t_client &client);
 void handle_invite_command(int client_socket, const std::string &args, t_data *data, t_client &client);
-void handle_mode_command(int client_socket, std::string &arg, t_data *data, t_client &client);
+void handle_mode_command(int client_socket, std::string &arg, t_data *data);
