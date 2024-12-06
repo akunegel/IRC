@@ -8,7 +8,6 @@ int main(int argc, char **argv) {
 	
 	t_data data;
 	data = parse_args(argv[2], argv[1]);
-
 	run_server(&data);
 	return 0;
 }

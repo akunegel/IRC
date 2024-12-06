@@ -293,6 +293,7 @@ void process_command(int client_socket, const std::string &command, t_data *data
     }
     else
     {
-        send_message(client_socket, "You must authenticate first using the PASS command!\n");
+        if (prefix != "CAP" && prefix != "JOIN")
+            send_message(client_socket, "You must authenticate first using the PASS command!\n");
     }
 }
